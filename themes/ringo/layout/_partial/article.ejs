@@ -20,7 +20,7 @@
         </ul>
         <div class="post-content" itemprop="articleBody">
             <%- lazyloadImage(post.content) %>
-            <% if (theme.post_copyright.enable === true) { %> 
+            <% if (theme.post_copyright.enable === false) { %> 
                 <blockquote>
                     <p>文章作者：<a href="<%- url_for() %> "> <%- config.author %>  </a></p>
                     <p>文章链接：<a href="<%- url_for(post.permalink) %>"> <%- post.permalink %> </a></p>
