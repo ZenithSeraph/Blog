@@ -43,7 +43,7 @@ local_search:
     enable: false
 
 # 是否显示 一言(hitokoto)
-hitokoto: true
+hitokoto: false
 
 # 链接(可选:facebook,twitter,github,wechat,email)
 links:
