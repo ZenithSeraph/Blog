@@ -4,10 +4,10 @@ language: zh-CN
 
 # main menu navigation
 menu:
-  Home: /
+  #Home: /
   #About: /about
   #Contact: /contact
-  Archives: /
+  #Archives: /archives
 
 # Highlight.js
 # Theme: https://highlightjs.org/static/demo/
