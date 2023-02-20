@@ -4,7 +4,7 @@ menu:
   分类: /categories
   标签: /tags
   归档: /archives  
-  关于: /about
+  #关于: /about
 
 # 是否显示目录
 TOC: false
@@ -47,11 +47,11 @@ hitokoto: true
 
 # 链接(可选:facebook,twitter,github,wechat,email)
 links:
-    facebook: /
-    twitter: /
-    github: /
-    wechat: /
-    email: /
+    #facebook: /
+    #twitter: /
+    #github: /
+    #wechat: /
+    #email: /
   
 # 备案
 beian: 
