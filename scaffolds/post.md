@@ -7,5 +7,5 @@ categories:
 tags: 
     - 标签1
     - 标签2
-cover: http://domain.com/awesome.jpg
+cover: /themes/diaspora/source/cover/
 ---
