@@ -1,5 +1,5 @@
 ---
-title: 【IZGN】一些玩过的游戏评分
+title: 【IZGN】一些玩过的游戏评测
 categories:
   - 测评
 tags:
