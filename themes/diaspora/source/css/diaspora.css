@@ -318,6 +318,7 @@ pre .keyword,pre .javascript .function {color:#cc99cc;}
 }
 @media screen and (max-width:780px) {
   #header {top:40px;}
+  #mark {height:72svh;min-height:360px;max-height:560px;}
   #vibrant svg {display:none;}
   #vibrant div {opacity:0.3;}
   #container {padding-bottom:50px;}
@@ -337,6 +338,7 @@ pre .keyword,pre .javascript .function {color:#cc99cc;}
   .comment .gt-btn-public .gt-btn-text:after{content:"";}
 }
 @media screen and (max-width:480px) {
+  #mark {height:70svh;min-height:340px;}
   #post0 p:first-child {display:block;}
   #container:before {display:none;}
   #post0 h2 {text-align:left;margin:0 10px 0 0;}

@@ -1,8 +1,19 @@
-<% var first = page.posts.sort("date", "desc").eq(0); %>
+<%
+var first = page.posts.sort("date", "desc").eq(0);
+var coverDate = first ? first.date.valueOf() : '';
+var coverSrc = theme.welcome_cover || (first && first.cover) || "/img/welcome-cover.jpg";
+var mobileCoverSrc = theme.welcome_cover_mobile || (first && (first.cover_mobile || first.mobile_cover)) || '';
+var coverPosition = (first && first.cover_position) || theme.cover_position || 'center center';
+var mobileCoverPosition = (first && (first.cover_mobile_position || first.mobile_cover_position)) || theme.cover_mobile_position || coverPosition;
+function cacheCover(src) {
+    if (!src || !coverDate) return src;
+    return src + (src.indexOf('?') === -1 ? '?v=' : '&v=') + coverDate;
+}
+%>
 <div id="screen">
     <div id="mark">
         <div class="layer" data-depth="0.4">
-            <%- image_tag((theme.welcome_cover || first.cover || "/img/welcome-cover.jpg") + '?v=' + (first ? first.date.valueOf() : ''), {id: "cover", crossorigin: "anonymous", width: 1920, height: 1080}) %>
+            <%- image_tag(cacheCover(coverSrc), {id: "cover", crossorigin: "anonymous", width: 1920, height: 1080, "data-mobile-src": cacheCover(mobileCoverSrc), "data-position": coverPosition, "data-mobile-position": mobileCoverPosition}) %>
         </div>
     </div>
     <div id="vibrant">

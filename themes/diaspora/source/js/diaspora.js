@@ -33,6 +33,55 @@ var Diaspora = {
     P: function() {
         return !!('ontouchstart' in window);
     },
+    coverPoint: function(value) {
+        var point = {x: 0.5, y: 0.5};
+        if (!value) {
+            return point;
+        }
+        var tokens = String(value).toLowerCase().trim().split(/\s+/),
+            explicit = {x: false, y: false};
+        var keyword = {
+            left: {axis: 'x', value: 0},
+            center: {axis: 'both', value: 0.5},
+            right: {axis: 'x', value: 1},
+            top: {axis: 'y', value: 0},
+            bottom: {axis: 'y', value: 1}
+        };
+        var readNumeric = function(token) {
+            if (/^-?\d+(\.\d+)?%$/.test(token)) {
+                return Math.max(0, Math.min(1, parseFloat(token) / 100));
+            }
+            return null;
+        };
+        tokens.forEach(function(token, index) {
+            var item = keyword[token];
+            if (item) {
+                if (item.axis == 'x') {
+                    point.x = item.value;
+                    explicit.x = true;
+                } else if (item.axis == 'y') {
+                    point.y = item.value;
+                    explicit.y = true;
+                } else {
+                    if (!explicit.x) point.x = item.value;
+                    if (!explicit.y) point.y = item.value;
+                }
+                return;
+            }
+            var numeric = readNumeric(token);
+            if (numeric === null) {
+                return;
+            }
+            if (index == 0) {
+                point.x = numeric;
+                explicit.x = true;
+            } else {
+                point.y = numeric;
+                explicit.y = true;
+            }
+        });
+        return point;
+    },
     PS: function() {
         if (!(window.history && history.pushState)){
             return;
@@ -185,10 +234,11 @@ var Diaspora = {
     loaded: function() {
         $('#loader').removeClass().hide()
     },
-    F: function(id, w, h) {
+    F: function(id, w, h, position) {
         var _height = $(id).parent().height(),
             _width = $(id).parent().width(),
-            ratio = h / w;
+            ratio = h / w,
+            point = Diaspora.coverPoint(position);
         if (_height / _width > ratio) {
             id.style.height = _height +'px';
             id.style.width = _height / ratio +'px';
@@ -196,8 +246,8 @@ var Diaspora = {
             id.style.width = _width +'px';
             id.style.height = _width * ratio +'px';
         }
-        id.style.left = (_width - parseInt(id.style.width)) / 2 +'px';
-        id.style.top = (_height - parseInt(id.style.height)) / 2 +'px';
+        id.style.left = (_width - parseInt(id.style.width)) * point.x +'px';
+        id.style.top = (_height - parseInt(id.style.height)) * point.y +'px';
     }
 };
 
@@ -208,11 +258,56 @@ $(function() {
     if ($('#preview').length) {
         var cover = {};
         cover.t = $('#cover');
-        cover.w = cover.t.attr('width');
-        cover.h = cover.t.attr('height');
+        cover.desktopSrc = cover.t.attr('src');
+        cover.mobileSrc = cover.t.data('mobile-src') || '';
+        cover.position = cover.t.data('position') || 'center center';
+        cover.mobilePosition = cover.t.data('mobile-position') || cover.position;
+        cover.mobileQuery = window.matchMedia ? window.matchMedia('(max-width: 780px)') : null;
+        cover.isMobile = function() {
+            return cover.mobileQuery ? cover.mobileQuery.matches : window.innerWidth <= 780;
+        };
+        cover.currentPosition = function() {
+            return cover.isMobile() ? cover.mobilePosition : cover.position;
+        };
+        cover.applySource = function() {
+            var src = cover.isMobile() && cover.mobileSrc ? cover.mobileSrc : cover.desktopSrc;
+            if (src && cover.t.attr('src') != src) {
+                cover.t.attr('src', src);
+                return true;
+            }
+            return false;
+        };
+        cover.readSize = function() {
+            var image = cover.t[0];
+            cover.w = image.naturalWidth || cover.t.attr('width') || cover.t.width();
+            cover.h = image.naturalHeight || cover.t.attr('height') || cover.t.height();
+        };
+        cover.updateParallax = function() {
+            var mark = $('#mark'),
+                api = mark.data('api');
+            if (cover.isMobile()) {
+                if (api) {
+                    api.disable();
+                }
+                return;
+            }
+            if (api) {
+                api.enable();
+            } else {
+                mark.parallax();
+            }
+        };
         ;(cover.o = function() {
-            $('#mark').height(window.innerHeight)
+            var height = window.innerHeight;
+            if (cover.isMobile()) {
+                height = Math.round(window.innerHeight * 0.72);
+                if (window.innerHeight >= 420) {
+                    height = Math.max(360, Math.min(height, 560));
+                }
+            }
+            $('#mark').height(height)
         })();
+        cover.applySource();
         if (cover.t.prop('complete')) {
             // why setTimeout ?
             setTimeout(function() { cover.t.load() }, 0)
@@ -236,16 +331,13 @@ $(function() {
                     'marginLeft': - 0.5 * x,
                     'marginTop': - 0.5 * y
                 })
-                if (!cover.w) {
-                    cover.w = cover.t.width();
-                    cover.h = cover.t.height();
-                }
-                Diaspora.F($('#cover')[0], cover.w, cover.h)
+                cover.readSize();
+                Diaspora.F($('#cover')[0], cover.w, cover.h, cover.currentPosition())
             })();
             setTimeout(function() {
                 $('html, body').removeClass('loading')
             }, 1000)
-            $('#mark').parallax()
+            cover.updateParallax()
             var vibrant = new Vibrant(cover.t[0]);
             var swatches = vibrant.swatches()
             if (swatches['DarkVibrant']) {
@@ -267,9 +359,14 @@ $(function() {
         $(window).on('resize', function() {
             clearTimeout(T)
             T = setTimeout(function() {
-                if (!Diaspora.P() && location.href == Home) {
+                if (location.href == Home) {
+                    var changed = cover.applySource();
                     cover.o()
-                    cover.f()
+                    if (cover.f && (!changed || cover.t.prop('complete'))) {
+                        cover.readSize();
+                        cover.f()
+                    }
+                    cover.updateParallax()
                 }
                 if ($('#loader').attr('class')) {
                     Diaspora.loading()
